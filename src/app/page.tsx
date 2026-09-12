@@ -22,12 +22,12 @@ export default function Home() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Change 1: Voter Profile state
+  // Voter Profile state (Change 1)
   const [voterName, setVoterName] = useState<string>('');
   const [tempNameInput, setTempNameInput] = useState<string>('');
   const [hasEnteredName, setHasEnteredName] = useState<boolean>(false);
 
-  // Change 4: Persistent star ratings per movie
+  // Persistent star selection per movie (Change 4)
   const [userRatings, setUserRatings] = useState<Record<string, number>>({});
 
   // 1. Load saved voter name and ratings from localStorage
@@ -58,7 +58,6 @@ export default function Home() {
         .order('bayesian_rating', { ascending: false });
 
       if (error) {
-        // Fallback to base movies table if view has not updated yet
         const { data: fallbackData } = await supabase.from('movies').select('*');
         if (fallbackData) setMovies(fallbackData as Movie[]);
       } else if (data) {
@@ -74,7 +73,6 @@ export default function Home() {
   useEffect(() => {
     fetchMovies();
 
-    // Realtime channel for live updates
     const channel = supabase
       .channel('realtime-ratings')
       .on(
@@ -91,7 +89,7 @@ export default function Home() {
     };
   }, []);
 
-  // 3. Save Voter Name (Change 1)
+  // 3. Save Voter Name
   const handleSaveName = (e: React.FormEvent) => {
     e.preventDefault();
     if (tempNameInput.trim()) {
@@ -102,7 +100,7 @@ export default function Home() {
     }
   };
 
-  // 4. Submit Rating and Persist Stars (Change 4)
+  // 4. Submit Rating and Persist Stars
   const handleRate = async (movieId: string, stars: number) => {
     if (!hasEnteredName) {
       alert('Please enter and save your voter name at the top before rating!');
@@ -115,7 +113,6 @@ export default function Home() {
     localStorage.setItem('movie_user_ratings', JSON.stringify(updatedRatings));
 
     try {
-      // Ensure anonymous session or sign in
       let { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
@@ -123,11 +120,10 @@ export default function Home() {
         session = authData.session;
       }
 
-      // Upsert/Insert rating
       const { error } = await supabase.from('ratings').insert({
         movie_id: movieId,
         rating: stars,
-        user_id: session?.user.id,
+        user_id: session?.user?.id,
       });
 
       if (error) {
@@ -144,7 +140,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Main Header */}
+        {/* Header */}
         <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-6 gap-4">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
@@ -161,7 +157,7 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Change 1: Voter Identity Banner */}
+        {/* Voter Profile Banner (Change 1) */}
         <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold block">
@@ -187,7 +183,7 @@ export default function Home() {
               />
               <button
                 type="submit"
-                className="px-4 py-1.5 text-sm font-medium bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg transition"
+                className="px-4 py-1.5 text-sm font-medium bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg transition cursor-pointer"
               >
                 Save
               </button>
@@ -270,7 +266,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Change 4: Stars stay filled */}
+                    {/* Persistent Stars (Change 4) */}
                     <div className="mt-3 flex items-center justify-between bg-slate-950/60 p-2 rounded-lg border border-slate-800">
                       <span className="text-xs text-slate-400">
                         {userVote > 0 ? `Your rating: ${userVote}★` : 'Rate this:'}
