@@ -122,7 +122,7 @@ export default function Home() {
 
       const { error } = await supabase.from('ratings').insert({
         movie_id: movieId,
-        rating: stars,
+        score: stars,
         user_id: session?.user?.id,
       });
 
