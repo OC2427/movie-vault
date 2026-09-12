@@ -16,7 +16,7 @@ interface LeaderboardMovie {
   bayesian_score: number;
 }
 
-export default function HomePage() {
+export default function Home() {
   const [movies, setMovies] = useState<LeaderboardMovie[]>([]);
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
